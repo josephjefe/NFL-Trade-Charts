@@ -1,0 +1,45 @@
+
+name: Update Draft Chart Labels
+
+on:
+  schedule:
+    # May 15 at 6:00 AM Los Angeles time (13:00 UTC)
+    - cron: '0 13 15 5 *'
+  workflow_dispatch:
+
+jobs:
+  update-data:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Set up R
+        uses: r-lib/actions/setup-r@v2
+        with:
+          use-public-rspm: true
+
+      - name: Install packages
+        uses: r-lib/actions/setup-r-dependencies@v2
+        with:
+          packages: |
+            any::dplyr
+            any::tidyr
+            any::readr
+            any::stringr
+            any::nflreadr
+
+      - name: Check out repository
+        uses: actions/checkout@v3
+
+      - name: Create Draft Chart Labels
+        run: Rscript -e 'source("R/draft_chart_labels.R")'
+
+      - name: Commit results
+        run: |
+          git config --local user.email "actions@github.com"
+          git config --local user.name "GitHub Actions"
+
+          git add Data/
+
+          git commit -m "Update draft chart labels" || echo "No changes to commit"
+
+          git push origin || echo "No changes to commit"
